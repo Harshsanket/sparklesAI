@@ -64,7 +64,7 @@ const SheetHeader = ({
   ...props
 }) => (
   <div
-    className={cn("flex flex-col space-y-2 text-center sm:text-left", className)}
+    className={cn("flex flex-col space-y-2 bg-neutral-950 text-center sm:text-left", className)}
     {...props} />
 )
 SheetHeader.displayName = "SheetHeader"
@@ -82,7 +82,7 @@ SheetFooter.displayName = "SheetFooter"
 const SheetTitle = React.forwardRef(({ className, ...props }, ref) => (
   <SheetPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold text-foreground", className)}
+    className={cn("text-lg font-semibold text-foreground bg-neutral-950", className)}
     {...props} />
 ))
 SheetTitle.displayName = SheetPrimitive.Title.displayName
@@ -90,7 +90,7 @@ SheetTitle.displayName = SheetPrimitive.Title.displayName
 const SheetDescription = React.forwardRef(({ className, ...props }, ref) => (
   <SheetPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-muted-foreground bg-neutral-950", className)}
     {...props} />
 ))
 SheetDescription.displayName = SheetPrimitive.Description.displayName

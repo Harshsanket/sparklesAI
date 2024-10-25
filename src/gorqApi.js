@@ -2,7 +2,9 @@ import Groq from "groq-sdk";
 
 const groq = new Groq({ apiKey: import.meta.env.VITE_GROQ_API_KEY, dangerouslyAllowBrowser: true });
 let response;
-export const gorqChat = async(message) => {
+let models;
+
+export const gorqChat = async({message, model}) => {
     try {
         const serverResponse  = await groq.chat.completions.create({
             messages: [
@@ -11,12 +13,23 @@ export const gorqChat = async(message) => {
                 content: message,
               },
             ],
-            model: "llama3-8b-8192",
+            model: model,
           });
           response = serverResponse.choices[0].message.content;
     } catch (error) {
         console.error(error);
-        response = "Unable to connect server"
+        response = "Unable to serve you at the movement."
     }
     return {response};
 }
+
+export const getModels = async () => {
+  try {
+    const modelResponse = await groq.models.list();
+    models = modelResponse;
+  } catch (error) {
+    console.log(error)
+    models = "Unable to get models."
+  }
+  return {models}
+};

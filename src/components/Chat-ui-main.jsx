@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { gorqChat } from "../gorqApi";
 import { Button } from "./ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, SendHorizontal } from "lucide-react";
 import { Input } from "./ui/input";
+import { modelContextProvider } from "../context/ContextProvider";
 const Chat_ui_main = () => {
   const [userInput, setUserInput] = useState("");
   const [userMessage, setUserMessage] = useState([]);
   const [buttonStatus, setButtonStatus] = useState(true);
-
+  const { modelInfo } = modelContextProvider();
   useEffect(() => {
     const retriveUserMessage = localStorage.getItem("userMessages");
     if (retriveUserMessage) {
@@ -27,7 +28,10 @@ const Chat_ui_main = () => {
     if (userInput.length <= 1) return;
 
     try {
-      const { response } = await gorqChat(userInput);
+      const { response } = await gorqChat({
+        message: userInput,
+        model: modelInfo,
+      });
       const newMessage = {
         userMessage: userInput,
         agentMessage: response,
@@ -74,43 +78,56 @@ const Chat_ui_main = () => {
   };
   return (
     <>
-      <div className="min-h-screen w-auto flex flex-col ">
-        <div className="flex-grow p-6">
-          {userMessage.map((message, index) => (
-            <div key={index}>
-              <p className="mt-2 mb-2 p-2 border rounded border-blue-700 ">
-                {message.userMessage}
-              </p>
-              <p className="mt-2 mb-4 p-2 border rounded border-blue-400 flex items-center">
-                <Sparkles className="mr-2" />{" "}
-                {renderMessage(message.agentMessage)}
+      <div className="sticky bottom-0 h-screen flex flex-col">
+        <div className="flex-grow p-6 mt-12">
+          {userMessage && userMessage.length > 0 ? (
+            userMessage.map((message, index) => (
+              <div key={index}>
+                <p className="mt-2 mb-2 p-2 border rounded border-blue-700">
+                  {message.userMessage}
+                </p>
+                <p className="mt-2 mb-4 p-2 border rounded border-blue-400 flex">
+                  <div className="flex-shrink-0">
+                    <Sparkles className="mr-2" />
+                  </div>
+                  <div className="flex-grow">
+                    <span>{renderMessage(message.agentMessage)}</span>
+                  </div>
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="flex items-center h-full justify-center">
+              <Sparkles />{" "}
+              <p className="ml-2 text-xl text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-blue-500 to-purple-600">
+                Your journey begins here.
               </p>
             </div>
-          ))}
+          )}
         </div>
 
-        <div className="sticky bottom-0 w-[100vw] sm:w-[95vw] p-4 flex justify-center items-center text-center">
-          <div className="grid w-full max-w-lg gap-2 text-center">
+        <div className="sticky bottom-0 w-full p-4 flex justify-center items-center text-center">
+          <div className="flex items-center w-full max-w-lg gap-2 text-center">
             <Input
               type="text"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
-              className="p-2 h-12 border-2 border-indigo-500 text-base"
-              placeholder="Type your query here."
+              className="p-2 h-12 border-2 border-indigo-500 text-base flex-grow"
+              placeholder="Hi, how can I assist you?"
             />
             <Button
               type="submit"
               onClick={handleSubmit}
               disabled={buttonStatus}
-              className="border-2 border-green-500 hover:bg-green-500"
+              className="h-12 border-2 border-green-500 hover:bg-green-500 focus:bg-green-500 sm:w-auto w-20"
             >
-              Send message
+              <SendHorizontal className="bg-transparent"/>
             </Button>
-          </div>
+          </div> 
         </div>
         <div className="flex justify-center items-center text-center text-sm text-gray-600">
           <span className="text-gray-600">
-            this bot can make mistakes.{" "}
+            this assistant can make mistakes.{" "}
             <b className="text-gray-600">please verify all information.</b>
           </span>
         </div>
