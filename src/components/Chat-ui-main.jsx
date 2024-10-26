@@ -18,7 +18,8 @@ const Chat_ui_main = () => {
   const [userMessage, setUserMessage] = useState([]);
   const [buttonStatus, setButtonStatus] = useState(true);
   const [reader, setReader] = useState(false);
-  const { modelInfo, setVoices, selectedVoice } = modelContextProvider();
+  const { modelInfo, setVoices, selectedVoice, admin, assistant } =
+    modelContextProvider();
   const [isPulsing, setIsPulsing] = useState(false);
   useEffect(() => {
     const retriveUserMessage = localStorage.getItem("userMessages");
@@ -29,7 +30,7 @@ const Chat_ui_main = () => {
   }, []);
 
   useEffect(() => {
-    if (userInput.length > 0 && userInput !== " ") {
+    if (userInput.length > 0 && userInput.trim() !== "") {
       setButtonStatus(false);
     } else {
       setButtonStatus(true);
@@ -43,6 +44,8 @@ const Chat_ui_main = () => {
       const { response } = await gorqChat({
         message: userInput,
         model: modelInfo,
+        admin,
+        assistant,
       });
       const newMessage = {
         userMessage: userInput,

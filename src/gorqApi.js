@@ -7,19 +7,26 @@ const groq = new Groq({
 let response;
 let models;
 
-export const gorqChat = async ({ message, model, code }) => {
+export const gorqChat = async ({ message, model, admin, assistant }) => {
   try {
     const serverResponse = await groq.chat.completions.create({
       messages: [
         {
+          role: "system",
+          content: admin? admin : "",
+        },
+        {
           role: "user",
           content: message,
+        },
+        {
+          role: "assistant",
+          content: assistant? assistant : "",
         },
       ],
       model: model,
     });
     response = serverResponse.choices[0].message.content;
-    console.log("Groq REs raw", serverResponse);
   } catch (error) {
     console.error(error);
     response = "Unable to serve you at the movement.";
