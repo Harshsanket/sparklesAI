@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { gorqChat } from "../gorqApi";
 import { Button } from "./ui/button";
-import { Sparkles, SendHorizontal } from "lucide-react";
+import {
+  Sparkles,
+  SendHorizontal,
+  Volume2,
+  VolumeOff,
+  Copy,
+  CircleUserRound,
+} from "lucide-react";
 import { Input } from "./ui/input";
 import { modelContextProvider } from "../context/ContextProvider";
 const Chat_ui_main = () => {
   const [userInput, setUserInput] = useState("");
   const [userMessage, setUserMessage] = useState([]);
   const [buttonStatus, setButtonStatus] = useState(true);
-  const { modelInfo } = modelContextProvider();
+  const [reader, setReader] = useState(false);
+  const { modelInfo, setVoices, selectedVoice } = modelContextProvider();
+  const [isPulsing, setIsPulsing] = useState(false);
   useEffect(() => {
     const retriveUserMessage = localStorage.getItem("userMessages");
     if (retriveUserMessage) {
       setUserMessage(JSON.parse(retriveUserMessage));
     }
+    window.speechSynthesis.getVoices();
   }, []);
 
   useEffect(() => {
@@ -44,37 +56,32 @@ const Chat_ui_main = () => {
       console.log(error);
     }
   };
-  const renderMessage = (message) => {
-    // Split the message into lines
-    const lines = message.split("\n");
+  const readText = (text) => {
+    setReader(true);
+    setVoices(window.speechSynthesis.getVoices());
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = selectedVoice || window.speechSynthesis.getVoices()[0];
+    window.speechSynthesis.speak(utterance);
+  };
 
-    return (
-      <ul>
-        {lines.map((line, index) => {
-          // Handle bold, italics, and strikethrough formatting
-          const formattedLine = line
-            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-            .replace(/_(.*?)_/g, "<em>$1</em>") // Italics
-            .replace(/~(.*?)~/g, "<del>$1</del>"); // Strikethrough
+  const stopReader = () => {
+    window.speechSynthesis.cancel();
+    setReader(false);
+  };
 
-          // If the line starts with '*', render as list item
-          if (line.startsWith("*")) {
-            const listItem = formattedLine.replace(/^\*\s*/, "").trim();
-            return (
-              <li key={index} dangerouslySetInnerHTML={{ __html: listItem }} />
-            );
-          } else {
-            // For regular lines, render them as paragraphs
-            return (
-              <p
-                key={index}
-                dangerouslySetInnerHTML={{ __html: formattedLine }}
-              />
-            );
-          }
-        })}
-      </ul>
-    );
+  const copyToClipboard = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setIsPulsing(true);
+
+        setTimeout(() => {
+          setIsPulsing(false);
+        }, 500);
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+      });
   };
   return (
     <>
@@ -83,15 +90,38 @@ const Chat_ui_main = () => {
           {userMessage && userMessage.length > 0 ? (
             userMessage.map((message, index) => (
               <div key={index}>
-                <p className="mt-2 mb-2 p-2 border rounded border-blue-700">
-                  {message.userMessage}
+                <p className="mt-2 mb-2 p-2 border rounded border-blue-700 flex">
+                  <div className="flex-shrink-0 p-2">
+                    <CircleUserRound className="mr-2" />
+                  </div>
+                  <div className="flex-grow p-2 ">{message.userMessage}</div>
                 </p>
                 <p className="mt-2 mb-4 p-2 border rounded border-blue-400 flex">
                   <div className="flex-shrink-0">
                     <Sparkles className="mr-2" />
                   </div>
-                  <div className="flex-grow">
-                    <span>{renderMessage(message.agentMessage)}</span>
+                  <div className="flex-grow p-2 ">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      className={"mb-2"}
+                    >
+                      {message.agentMessage}
+                    </ReactMarkdown>
+                    <button
+                      onClick={() => copyToClipboard(message.agentMessage)}
+                      className={`mr-3 ${isPulsing ? "pulse" : ""}`}
+                    >
+                      <Copy className="w-4" />
+                    </button>
+                    {reader ? (
+                      <button onClick={stopReader}>
+                        <VolumeOff className="w-4" />
+                      </button>
+                    ) : (
+                      <button onClick={() => readText(message.agentMessage)}>
+                        <Volume2 className="w-4" />
+                      </button>
+                    )}
                   </div>
                 </p>
               </div>
@@ -121,9 +151,9 @@ const Chat_ui_main = () => {
               disabled={buttonStatus}
               className="h-12 border-2 border-green-500 hover:bg-green-500 focus:bg-green-500 sm:w-auto w-20"
             >
-              <SendHorizontal className="bg-transparent"/>
+              <SendHorizontal className="bg-transparent" />
             </Button>
-          </div> 
+          </div>
         </div>
         <div className="flex justify-center items-center text-center text-sm text-gray-600">
           <span className="text-gray-600">

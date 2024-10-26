@@ -84,3 +84,21 @@
   background-color: #0A0A0A;
   color: #f7f7f7;
 }
+@keyframes pulse-animation {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pulse {
+  animation: pulse-animation 1s infinite;
+}

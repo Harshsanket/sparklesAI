@@ -14,7 +14,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
@@ -36,9 +35,13 @@ import { getModels } from "../gorqApi";
 import { modelContextProvider } from "../context/ContextProvider";
 const Header = () => {
   const [models, setModles] = useState([]);
-  const { modelInfo, setModelInfo } = modelContextProvider();
+  const { modelInfo, setModelInfo, voices, selectedVoice, setSelectedVoice } = modelContextProvider();
   const handleSelect = (value) => {
     setModelInfo(value);
+  };
+
+  const voiceSelect = (value) => {
+    setSelectedVoice(value);
   };
 
   const fetchModels = async () => {
@@ -53,8 +56,9 @@ const Header = () => {
   useEffect(() => {
     fetchModels();
   }, []);
+
   return (
-    <div className="sticky top-0 rounded flex justify-between items-center p-2 bg-neutral-800 z-10">
+    <div className="fixed top-0 left-0 w-full rounded flex justify-between items-center p-2 bg-neutral-800 z-10">
       <div className="flex-1 text-center flex justify-center bg-neutral-800">
         <Sparkles className="mr-2 bg-neutral-800" />
         <span className="bg-neutral-800">sparklesAI</span>
@@ -75,7 +79,7 @@ const Header = () => {
               </div>
               <SheetDescription className={"text-white bg-neutral-950"}>
                 <div className="mb-2">
-                  <SheetTitle className={"text-white text-sm"}>
+                  <SheetTitle className={"text-white text-sm mb-1"}>
                     Select Model
                   </SheetTitle>
                   <Select onValueChange={handleSelect}>
@@ -98,10 +102,29 @@ const Header = () => {
                   </Select>
                 </div>
                 <div className="mb-2">
-                  <SheetTitle className={"text-white text-sm"}>
-                    Chats
+                  <SheetDescription>
+                  <SheetTitle className={"text-white text-sm mb-1"}>
+                    Select Voice
                   </SheetTitle>
-                  <SheetDescription className={"mb-1"}>
+                  <Select onValueChange={voiceSelect}>
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder={`${selectedVoice ? selectedVoice.name : 'Default'}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {voices ? (
+                        voices.map((element, index) => (
+                          <SelectGroup key={index}>
+                            <SelectItem value={element}>
+                              {element.name}
+                            </SelectItem>
+                          </SelectGroup>
+                        ))
+                      ) : (
+                        <p>Unable to get models</p>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <br />
                     No user data is saved to the cloud. Chats are stored locally
                     on your device.
                     <br />
@@ -113,7 +136,7 @@ const Header = () => {
                     <br />
                     <br />
                   </SheetDescription>
-                  <Dialog>
+                  <Dialog >
                     <DialogTrigger asChild>
                       <Button variant="destructive">Delete Data</Button>
                     </DialogTrigger>
@@ -138,6 +161,9 @@ const Header = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                </div>
+                <div className="mb-2">
+                 
                 </div>
                 <div className="mb-2">
                   <p className="text-sm text-gray-700 container flex items-center justify-between p-4 mx-auto sm:space-y-0 sm:flex-row">
