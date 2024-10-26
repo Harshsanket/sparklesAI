@@ -7,23 +7,32 @@ const groq = new Groq({
 let response;
 let models;
 
-export const gorqChat = async ({ message, model, admin, assistant }) => {
+export const gorqChat = async ({
+  message,
+  model,
+  admin,
+  assistant,
+  userMessage,
+}) => {
   try {
+    const prevMessage = userMessage.flat();
+    const newMessages = [
+      {
+        role: "system",
+        content: admin ? admin : "",
+      },
+      {
+        role: "user",
+        content: message,
+      },
+      {
+        role: "assistant",
+        content: assistant ? assistant : "",
+      },
+    ];
+    const updatedMessages = [...prevMessage, ...newMessages];
     const serverResponse = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: admin? admin : "",
-        },
-        {
-          role: "user",
-          content: message,
-        },
-        {
-          role: "assistant",
-          content: assistant? assistant : "",
-        },
-      ],
+      messages: updatedMessages,
       model: model,
     });
     response = serverResponse.choices[0].message.content;

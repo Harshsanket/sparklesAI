@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { gorqChat } from "../gorqApi";
 import { Button } from "./ui/button";
 import {
@@ -43,14 +45,25 @@ const Chat_ui_main = () => {
     try {
       const { response } = await gorqChat({
         message: userInput,
-        model: modelInfo,
         admin,
         assistant,
+        userMessage,
+        model: modelInfo,
       });
-      const newMessage = {
-        userMessage: userInput,
-        agentMessage: response,
-      };
+      const newMessage = [
+        {
+          role: "system",
+          content: admin ? admin : "",
+        },
+        {
+          role: "user",
+          content: userInput,
+        },
+        {
+          role: "assistant",
+          content: response,
+        },
+      ];
       const updatedMessage = [...userMessage, newMessage];
       setUserMessage(updatedMessage);
       localStorage.setItem("userMessages", JSON.stringify(updatedMessage));
@@ -97,19 +110,37 @@ const Chat_ui_main = () => {
                   <div className="flex-shrink-0 p-2">
                     <CircleUserRound className="mr-2" />
                   </div>
-                  <div className="flex-grow p-2 ">{message.userMessage}</div>
+                  <div className="flex-grow p-2 ">{message[1].content}</div>
                 </p>
                 <p className="mt-2 mb-4 p-2 border rounded border-blue-400 flex">
                   <div className="flex-shrink-0">
                     <Sparkles className="mr-2" />
                   </div>
                   <div className="flex-grow p-2 ">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      className={"mb-2"}
-                    >
-                      {message.agentMessage}
-                    </ReactMarkdown>
+                  <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+                // Define how to render code blocks
+                code({ node, inline, className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || '');
+                    return inline ? (
+                        <code {...props}>{children}</code>
+                    ) : (
+                        <SyntaxHighlighter
+                            style={dracula} // Choose your preferred style
+                            language={match ? match[1] : ''}
+                            PreTag="div"
+                            {...props}
+                        >
+                            {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                    );
+                },
+            }}
+            className={"mb-2"}
+        >
+            {message[2].content}
+        </ReactMarkdown>
                     <button
                       onClick={() => copyToClipboard(message.agentMessage)}
                       className={`mr-3 ${isPulsing ? "pulse" : ""}`}
