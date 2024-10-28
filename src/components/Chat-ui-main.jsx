@@ -152,7 +152,7 @@ const Chat_ui_main = () => {
                         <VolumeOff className="w-4" />
                       </button>
                     ) : (
-                      <button onClick={() => readText(message.agentMessage)}>
+                      <button onClick={() => readText(message[2].content)}>
                         <Volume2 className="w-4" />
                       </button>
                     )}
